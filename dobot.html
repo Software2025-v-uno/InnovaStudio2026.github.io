@@ -1,0 +1,343 @@
+```jsx
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+
+const qaPairs = [
+  {
+    question: "que debo hacer si olvido mi contraseña",
+    answer: "Si olvidas tu contraseña, puedes restablecerla desde la página de inicio de sesión haciendo clic en \"¿Olvidaste tu contraseña?\". Recibirás un correo electrónico con instrucciones para crear una nueva."
+  },
+  {
+    question: "como reportar un problema de seguridad",
+    answer: "Para reportar problemas de seguridad, envía un correo a seguridad@institucion.edu o usa el formulario de contacto en la sección \"Soporte Técnico\" del menú principal."
+  },
+  {
+    question: "cual es la politica de disciplina en el aula",
+    answer: "La política de disciplina requiere puntualidad, respeto hacia profesores y compañeros, y prohibición de dispositivos electrónicos durante las clases. Las faltas graves pueden derivar en sanciones."
+  },
+  {
+    question: "como acceder al sistema academico",
+    answer: "Inicia sesión con tu usuario y contraseña en el portal institucional. Si tienes problemas, contacta al soporte técnico."
+  },
+  {
+    question: "que hacer en caso de acoso escolar",
+    answer: "Reporta cualquier incidente de acoso a la oficina de bienestar estudiantil o al director de tu facultad. Mantén registros de los sucesos para documentar el caso."
+  },
+  {
+    question: "donde encuentro el calendario academico",
+    answer: "El calendario académico está disponible en la sección \"Recursos\" del portal institucional, bajo el menú \"Documentos Oficiales\"."
+  },
+  {
+    question: "como solicitar una exencion de clase",
+    answer: "Envía una solicitud formal con justificante médico o documentación válida al coordinador de tu carrera, al menos 48 horas antes de la clase."
+  },
+  {
+    question: "que medidas de seguridad hay en la plataforma",
+    answer: "La plataforma utiliza encriptación SSL de 256 bits, autenticación de dos factores obligatoria para accesos sensibles, y monitoreo continuo contra intrusiones. Todos los datos están protegidos bajo el Reglamento General de Protección de Datos (RGPD) y normativas institucionales."
+  },
+  {
+    question: "como funciona el sistema de evaluacion",
+    answer: "Las evaluaciones incluyen exámenes (40%), trabajos prácticos (30%), participación en clase (20%) y proyectos finales (10%). Los criterios específicos se detallan en el syllabus de cada asignatura."
+  },
+  {
+    question: "donde encuentro los materiales de estudio",
+    answer: "Los materiales están en la plataforma virtual, en la sección de cada curso. Consulta con tu profesor si no los encuentras o necesitas acceso adicional."
+  },
+  {
+    question: "que hacer si no puedo asistir a una clase",
+    answer: "Notifica a tu profesor con al menos 24 horas de antelación mediante el sistema de justificantes. Revisa los materiales compartidos en la plataforma para no perder contenido académico."
+  },
+  {
+    question: "como reportar un error tecnico",
+    answer: "Usa el formulario de reporte de errores en la sección \"Soporte\" o envía un correo a soporte@institucion.edu con capturas de pantalla y pasos para reproducir el problema."
+  },
+  {
+    question: "cual es el horario de atencion del soporte tecnico",
+    answer: "El soporte técnico está disponible de lunes a viernes, 8:00 a 18:00 horas, y los sábados de 9:00 a 13:00 horas. Para emergencias fuera de horario, usa la línea de emergencias 555-911."
+  },
+  {
+    question: "como actualizar mis datos personales",
+    answer: "Ve a \"Mi Perfil\" en el portal, selecciona \"Editar Datos\" y guarda los cambios. Verifica tu correo para confirmar actualizaciones sensibles como número telefónico o dirección."
+  },
+  {
+    question: "que politicas hay sobre el uso de dispositivos en clase",
+    answer: "Los dispositivos electrónicos deben estar en modo silencio y solo se usan con autorización explícita del profesor para fines académicos. El uso inapropiado puede resultar en confiscación temporal y reporte disciplinario."
+  },
+  {
+    question: "como acceder a la biblioteca digital",
+    answer: "Inicia sesión en el portal institucional y busca la sección \"Biblioteca Digital\". Allí encontrarás más de 50,000 recursos académicos, revistas especializadas y bases de datos de investigación."
+  },
+  {
+    question: "que hacer si tengo problemas con el pago de matricula",
+    answer: "Contacta al departamento financiero al 555-1234 o visita su oficina en el edificio central, planta baja. Para casos especiales, solicita una reunión con el comité de becas y ayudas económicas."
+  },
+  {
+    question: "como participar en talleres extracurriculares",
+    answer: "Regístrate en la plataforma virtual en la sección \"Actividades Extraprogramáticas\" antes de la fecha límite. La asistencia se registra mediante código QR al inicio de cada sesión."
+  },
+  {
+    question: "que protocolos de seguridad hay en los laboratorios",
+    answer: "Usa equipo de protección obligatorio (bata, gafas, guantes), sigue las instrucciones del profesor al pie de la letra, y reporta inmediatamente cualquier incidente o material dañado a un supervisor. Está prohibido comer, beber o usar dispositivos móviles dentro de los laboratorios."
+  },
+  {
+    question: "como solicitar una beca",
+    answer: "Revisa los requisitos en la sección \"Becas y Ayudas\" del portal y envía tu solicitud digital antes de la fecha límite indicada. El comité evalúa mérito académico, situación socioeconómica y participación en actividades institucionales."
+  },
+  {
+    question: "cual es la politica de privacidad",
+    answer: "Nuestra Política de Privacidad garantiza que tus datos personales son confidenciales y solo se utilizan para fines académicos institucionales. No compartimos información con terceros sin consentimiento explícito, excepto cuando lo requiere la ley. Tienes derecho a acceder, rectificar o solicitar la eliminación de tus datos contactando a privacidad@institucion.edu."
+  },
+  {
+    question: "cuales son los terminos de uso",
+    answer: "Los Términos de Uso establecen que el portal institucional es exclusivo para estudiantes, profesores y personal autorizado. Está estrictamente prohibido: distribuir contenido ilegal, intentar accesos no autorizados, acosar a otros usuarios, o usar la plataforma para fines comerciales no autorizados. El incumplimiento puede resultar en suspensión inmediata de tu cuenta, acciones disciplinarias y en casos graves, denuncia ante las autoridades competentes."
+  },
+  {
+    question: "como puedo obtener ayuda",
+    answer: "Para obtener ayuda inmediata: 1) Contacta al soporte técnico al 555-1234 (24/7 para emergencias), 2) Envía un correo a ayuda@institucion.edu con detalles de tu problema, 3) Visita la oficina de soporte en el edificio central (planta baja) de lunes a viernes 8:00-18:00, 4) Usa el chat en vivo disponible en el portal institucional. Para problemas disciplinarios o académicos, contacta directamente a tu coordinador de carrera."
+  }
+];
+
+export default function App() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [showSecurityInfo, setShowSecurityInfo] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Initialize with welcome message
+  useEffect(() => {
+    const welcomeMessage = {
+      sender: 'bot',
+      text: "¡Hola! 👋 Soy DOBOT, tu asistente académico institucional. Estoy aquí para ayudarte con cualquier consulta sobre vida académica, políticas disciplinarias y seguridad de nuestra plataforma.\n\n💡 Puedes preguntarme sobre:\n• Olvido de contraseñas\n• Reporte de problemas de seguridad\n• Políticas académicas y disciplinarias\n• Acceso a recursos institucionales\n• Procedimientos administrativos\n\n🔒 Nuestra plataforma cuenta con:\n• Encriptación de extremo a extremo\n• Autenticación de dos factores\n• Monitoreo 24/7 contra amenazas\n• Cumplimiento RGPD y normativas institucionales\n\n¿En qué puedo ayudarte hoy?"
+    };
+    setMessages([welcomeMessage]);
+  }, []);
+
+  const getBotResponse = (userInput) => {
+    const cleanInput = userInput.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    // Special handling for button clicks
+    if (userInput === "Política de Privacidad") return qaPairs.find(q => q.question.includes("politica de privacidad")).answer;
+    if (userInput === "Términos de Uso") return qaPairs.find(q => q.question.includes("terminos de uso")).answer;
+    if (userInput === "Ayuda") return qaPairs.find(q => q.question.includes("como puedo obtener ayuda")).answer;
+    
+    // Find best match from knowledge base
+    const match = qaPairs.find(pair => {
+      const cleanQuestion = pair.question.replace(/[^a-z0-9]/g, '');
+      return cleanInput.includes(cleanQuestion) || cleanQuestion.includes(cleanInput);
+    });
+    
+    return match ? match.answer : 
+      "No encontré información específica sobre tu consulta. Por favor:\n1. Reformula tu pregunta\n2. Sé más específico\n3. Consulta nuestras secciones de ayuda\n\nTambién puedes contactar directamente al soporte técnico al 555-1234 para asistencia personalizada.";
+  };
+
+  const sendMessage = (text) => {
+    if (!text.trim()) return;
+    
+    // Add user message
+    const userMessage = { sender: 'user', text };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsTyping(true);
+    
+    // Simulate bot response after delay
+    setTimeout(() => {
+      const botResponse = getBotResponse(text);
+      const botMessage = { sender: 'bot', text: botResponse };
+      setMessages(prev => [...prev, botMessage]);
+      setIsTyping(false);
+      
+      // Auto-expand if security info is mentioned
+      if (text.toLowerCase().includes('seguridad') || text.toLowerCase().includes('privacidad')) {
+        setShowSecurityInfo(true);
+      }
+    }, 800);
+  };
+
+  const handleSend = () => {
+    if (input.trim()) sendMessage(input);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const toggleSecurityInfo = () => {
+    setShowSecurityInfo(!showSecurityInfo);
+  };
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-400 via-yellow-300 to-blue-500 flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className={`bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col ${isExpanded ? 'h-screen w-full max-w-4xl' : 'w-full max-w-md'}`}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <div className="bg-yellow-400 text-blue-900 font-bold text-2xl p-3 rounded-2xl mr-3 shadow-lg border-4 border-white">
+              DOBOT
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Asistente Académico Institucional</h1>
+              <p className="text-blue-100 text-sm">Seguridad • Disciplina • Recursos Académicos</p>
+            </div>
+          </div>
+          <div className="flex space-x-3">
+            <button 
+              onClick={toggleSecurityInfo}
+              className={`p-2 rounded-full transition-all ${showSecurityInfo ? 'bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'}`}
+              aria-label="Información de seguridad"
+            >
+              🔒
+            </button>
+            <button 
+              onClick={toggleExpand}
+              className="p-2 bg-blue-500 hover:bg-blue-600 rounded-full transition"
+              aria-label={isExpanded ? "Contraer ventana" : "Expandir ventana"}
+            >
+              {isExpanded ? '❐' : '□'}
+            </button>
+          </div>
+        </div>
+
+        {/* Security Banner */}
+        {showSecurityInfo && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-blue-50 border-t border-blue-200 p-4"
+          >
+            <div className="flex items-start">
+              <div className="bg-blue-600 text-white p-2 rounded-full mr-3 mt-1 flex-shrink-0">
+                🔒
+              </div>
+              <div>
+                <h3 className="font-bold text-blue-800">Protección de tus datos</h3>
+                <p className="text-blue-700 text-sm">
+                  Esta plataforma utiliza encriptación SSL de 256 bits, autenticación de dos factores obligatoria para accesos sensibles, y monitoreo continuo contra intrusiones. Todos los datos están protegidos bajo el RGPD y normativas institucionales. 
+                  <span className="block mt-1 font-medium">Nunca compartas tu contraseña con nadie. El personal institucional nunca te la solicitará por mensaje.</span>
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Chat Messages */}
+        <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${isExpanded ? 'h-full' : 'h-96'}`}>
+          {messages.map((msg, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow ${msg.sender === 'user' 
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-none' 
+                : 'bg-gray-50 text-gray-800 rounded-bl-none border border-gray-200'}`}>
+                <p className="whitespace-pre-line">{msg.text}</p>
+                <span className={`text-xs mt-1 block text-right ${msg.sender === 'user' ? 'text-blue-200' : 'text-gray-400'}`}>
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-start"
+            >
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 rounded-bl-none">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="p-3 bg-gray-50 border-t border-gray-200">
+          <div className="flex flex-wrap justify-center gap-2">
+            {["Política de Privacidad", "Términos de Uso", "Ayuda"].map((option) => (
+              <motion.button
+                key={option}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => sendMessage(option)}
+                className="px-4 py-2 bg-white border border-blue-200 rounded-full text-sm font-medium text-blue-700 hover:bg-blue-50 transition-all shadow-sm"
+              >
+                {option}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 border-t border-gray-100 bg-white">
+          <div className="flex items-center space-x-2">
+            <button className="text-gray-500 hover:text-blue-600 transition text-xl p-2" aria-label="Microfono">
+              🎤
+            </button>
+            <div className="flex-1 relative">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Escribe tu consulta académica o sobre seguridad institucional..."
+                rows="1"
+                className="w-full border border-gray-300 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition shadow-sm"
+                style={{ minHeight: '52px', maxHeight: '120px' }}
+                onInput={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+              />
+              <div className="absolute bottom-3 right-3 flex space-x-2">
+                <button className="text-gray-400 hover:text-blue-600 transition text-lg" aria-label="Adjuntar archivo">
+                  📎
+                </button>
+              </div>
+            </div>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSend}
+              disabled={!input.trim()}
+              className={`p-3 rounded-full transition shadow-lg ${
+                input.trim() 
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              aria-label="Enviar mensaje"
+            >
+              ✈️
+            </motion.button>
+          </div>
+          <div className="mt-3 flex justify-center space-x-4">
+            <div className="flex items-center text-xs text-gray-600">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+              Operador disponible 24/7
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+```

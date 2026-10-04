@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Acceso Seguro | Colegio Lucas Caballero</title>
+  <link rel="icon" href="icono.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-yellow: #F4E841;
+      --primary-green: #006400;
+      --dark-green: #1a4d1a;
+      --light-yellow: #fff9c4;
+      --glass-bg: rgba(255, 255, 255, 0.15);
+      --glass-border: rgba(255, 255, 255, 0.25);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(135deg, #0f2814 0%, #1a3a1a 50%, #2d3436 100%);
+    }
+
+    /* Video de fondo con overlay verde/amarillo */
+    video#video-fondo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      z-index: -2;
+      filter: brightness(0.5) contrast(1.2) hue-rotate(-10deg);
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, 
+        rgba(0, 100, 0, 0.6) 0%, 
+        rgba(244, 232, 65, 0.2) 50%, 
+        rgba(0, 50, 0, 0.7) 100%);
+      z-index: -1;
+    }
+
+    /* Logo de fondo decorativo */
+    .bg-logo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
+      opacity: 0.08;
+      z-index: -1;
+      background-image: url('icono.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: brightness(2) contrast(1.2);
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 40, 0, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .spinner {
+      width: 80px;
+      height: 80px;
+      border: 6px solid rgba(244, 232, 65, 0.3);
+      border-top: 6px solid var(--primary-yellow);
+      border-right: 6px solid var(--primary-green);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(244, 232, 65, 0.4);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--primary-yellow);
+      font-size: 1.3rem;
+      font-weight: 600;
+      text-align: center;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .loading-subtext {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.95rem;
+      margin-top: 10px;
+    }
+
+    /* Security Modal */
+    .security-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 30, 0, 0.95);
+      backdrop-filter: blur(15px);
+      z-index: 4000;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .security-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .security-content {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border: 2px solid var(--primary-yellow);
+      border-radius: 24px;
+      padding: 40px 30px;
+      max-width: 450px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
+                  0 0 40px rgba(244, 232, 65, 0.2);
+      transform: scale(0.9);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .security-modal.active .security-content {
+      transform: scale(1);
+    }
+
+    .security-icon {
+      font-size: 3.5rem;
+      color: var(--primary-yellow);
+      margin-bottom: 20px;
+      animation: shieldPulse 2s infinite;
+    }
+
+    @keyframes shieldPulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(244, 232, 65, 0.5)); }
+      50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(244, 232, 65, 0.8)); }
+    }
+
+    .security-title {
+      color: var(--primary-yellow);
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .security-subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1rem;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    /* Slider de seguridad mejorado */
+    .slider-container {
+      position: relative;
+      width: 100%;
+      max-width: 340px;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 30px;
+      border: 2px solid rgba(244, 232, 65, 0.4);
+      margin: 0 auto;
+      overflow: hidden;
+      box-shadow: inset 0 3px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .slider-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.95rem;
+      font-weight: 600;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .slider-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-green) 0%, var(--primary-yellow) 100%);
+      border-radius: 30px;
+      transition: width 0.1s linear;
+      opacity: 0.8;
+    }
+
+    .slider-ball {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--primary-yellow) 0%, #fff 100%);
+      border-radius: 50%;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dark-green);
+      font-size: 1.4rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 
+                  0 0 15px rgba(244, 232, 65, 0.5);
+      transition: transform 0.1s, box-shadow 0.3s;
+      z-index: 2;
+      touch-action: none;
+      border: 2px solid var(--primary-green);
+    }
+
+    .slider-ball:active {
+      cursor: grabbing;
+      transform: scale(0.95);
+    }
+
+    .slider-ball.verified {
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      color: white;
+      border-color: #059669;
+    }
+
+    .close-security {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .close-security:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      transform: rotate(90deg);
+    }
+
+    /* Container principal */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 20px;
+      z-index: 1;
+    }
+
+    .logo {
+      margin-bottom: 2rem;
+      text-align: center;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+    }
+
+    .logo-icon img {
+      width: 120px;
+      height: auto;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+    }
+
+    .logo-text {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-yellow) 0%, #fff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      letter-spacing: 1px;
+    }
+
+    .logo-subtext {
+      color: var(--primary-yellow);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 5px;
+      letter-spacing: 2px;
+    }
+
+    .cuadro {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 450px;
+      padding: 40px 35px;
+      border-radius: 28px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3),
+                  0 0 0 1px rgba(244, 232, 65, 0.2);
+      border: 1px solid var(--glass-border);
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .title {
+      color: white;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      font-weight: 400;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 18px 24px;
+      margin: 18px 0;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      transition: left 0.6s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-estudiante {
+      background: linear-gradient(135deg, var(--primary-yellow) 0%, #f9f871 100%);
+      color: var(--dark-green);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-docente {
+      background: linear-gradient(135deg, var(--primary-green) 0%, #228B22 100%);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn i {
+      margin-right: 12px;
+      font-size: 1.4rem;
+      width: 26px;
+      text-align: center;
+    }
+
+    .btn:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4),
+                  0 0 25px rgba(244, 232, 65, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+
+    /* Footer */
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(180deg, transparent 0%, rgba(0, 40, 0, 0.9) 100%);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      padding: 20px 0;
+      color: var(--primary-yellow);
+      font-weight: 600;
+      z-index: 2;
+      border-top: 1px solid rgba(244, 232, 65, 0.3);
+      font-size: 0.95rem;
+    }
+
+    .institution-name {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .institution-name i {
+      color: var(--primary-yellow);
+      font-size: 1.1rem;
+    }
+
+    /* Modal de anuncio */
+    #anuncio-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 30, 0, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 5000;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    #anuncio-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 248, 113, 0.95) 100%);
+      border: 3px solid var(--primary-yellow);
+      border-radius: 24px;
+      width: 90%;
+      max-width: 500px;
+      padding: 35px;
+      position: relative;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5),
+                  0 0 50px rgba(244, 232, 65, 0.3);
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #anuncio-modal.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary-green);
+      border: none;
+      font-size: 1.4rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .close-btn:hover {
+      background: var(--dark-green);
+      transform: rotate(90deg) scale(1.1);
+    }
+
+    .modal-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--dark-green);
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .modal-icon {
+      font-size: 3.5rem;
+      color: var(--primary-green);
+      margin: 0 auto 20px;
+      display: block;
+      text-align: center;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .modal-text {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #2d3436;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .modal-footer {
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--dark-green);
+      font-weight: 600;
+      padding-top: 20px;
+      border-top: 2px solid rgba(0, 100, 0, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .bg-logo { width: 250px; height: 250px; }
+      .cuadro { padding: 30px 22px; }
+      .btn { padding: 16px; font-size: 1.05rem; }
+      .title { font-size: 1.7rem; }
+      .logo-text { font-size: 1.6rem; }
+      .security-content { padding: 30px 20px; }
+      .slider-container { max-width: 300px; height: 55px; }
+      .slider-ball { width: 46px; height: 46px; }
+    }
+
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="no-select">
+
+  <!-- Video de fondo -->
+  <video id="video-fondo" autoplay muted loop playsinline>
+    <source src="video.mp4" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
+  
+  <!-- Logo de fondo decorativo -->
+  <div class="bg-logo"></div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Verificando credenciales...</div>
+    <div class="loading-subtext">Por favor espere</div>
+  </div>
+
+  <!-- Security Modal -->
+  <div class="security-modal" id="securityModal">
+    <div class="security-content">
+      <button class="close-security" id="closeSecurity">&times;</button>
+      <i class="fas fa-shield-halved security-icon"></i>
+      <h2 class="security-title">Verificación de Seguridad</h2>
+      <p class="security-subtitle">
+        Sistema de protección avanzado<br>
+        Desliza la bola para confirmar que eres humano
+      </p>
+      
+      <div class="slider-container" id="sliderContainer">
+        <div class="slider-track" id="sliderTrack"></div>
+        <div class="slider-text" id="sliderText">Desliza para verificar →</div>
+        <div class="slider-ball" id="sliderBall">
+          <i class="fas fa-fingerprint"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container principal -->
+  <div class="container">
+    <div class="logo">
+      <div class="logo-icon">
+        <img src="icono.png" alt="Logo Colegio Lucas Caballero">
+      </div>
+      <div class="logo-text">COLEGIO INTEGRADO</div>
+      <div class="logo-subtext">LUCAS CABALLERO - SUAITA</div>
+    </div>
+    
+    <div class="cuadro">
+      <h1 class="title">Acceso al Sistema</h1>
+      <p class="subtitle">Plataforma educativa segura y protegida</p>
+      
+      <button class="btn btn-docente" id="btn-docente">
+        <i class="fas fa-chalkboard-teacher"></i> Acceso Docente
+      </button>
+      
+      <button class="btn btn-estudiante" id="btn-estudiante">
+        <i class="fas fa-graduation-cap"></i> Acceso Estudiante
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="institution-name">
+      <i class="fas fa-lock"></i>
+      <span>© 2026 Colegio Lucas Caballero - Suaita | Sistema Seguro CLC</span>
+    </div>
+  </footer>
+
+  <!-- Modal de anuncio para docentes -->
+  <div id="anuncio-modal">
+    <div class="modal-content">
+      <button class="close-btn" id="close-modal" aria-label="Cerrar modal">&times;</button>
+      <i class="fas fa-triangle-exclamation modal-icon"></i>
+      <h2 class="modal-title">Aviso Importante</h2>
+      <p class="modal-text">
+        Estimado docente, el sistema se encuentra en mantenimiento programado. 
+        El acceso estará disponible próximamente. 
+        <br><br>
+        <strong>Disculpe las molestias.</strong>
+      </p>
+      <div class="modal-footer">
+        <p>Administración del Sistema - CLC</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // SEGURIDAD AVANZADA
+    // ==========================================
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || 
+          (e.ctrlKey && (e.key === 'U' || e.key === 'S'))) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // ==========================================
+    // SISTEMA DE VOZ
+    // ==========================================
+    function speakWelcome() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        
+        const text = "Bienvenidos al Colegio Integrado Lucas Caballero. Sistema de acceso seguro verificado. Seleccione su tipo de usuario para continuar.";
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        utterance.volume = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => 
+          v.lang.includes('es') && 
+          (v.name.includes('Google') || v.name.includes('Female') || v.name.includes('Monica') || v.name.includes('Sabina'))
+        );
+        
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = () => {};
+    }
+
+    // ==========================================
+    // CONTROL DE FLUJO DE ACCESO
+    // ==========================================
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const securityModal = document.getElementById('securityModal');
+    const btnDocente = document.getElementById('btn-docente');
+    const btnEstudiante = document.getElementById('btn-estudiante');
+    const anuncioModal = document.getElementById('anuncio-modal');
+    const closeModal = document.getElementById('close-modal');
+    const closeSecurity = document.getElementById('closeSecurity');
+
+    let userType = '';
+
+    // Función para manejar el acceso
+    function handleAccess(type) {
+      userType = type;
+      
+      // Mostrar loading
+      loadingOverlay.classList.add('active');
+      
+      // Simular verificación de credenciales (2 segundos)
+      setTimeout(() => {
+        loadingOverlay.classList.remove('active');
+        securityModal.classList.add('active');
+        
+        // Reproducir sonido de bienvenida después de la interacción
+        speakWelcome();
+      }, 2000);
+    }
+
+    btnDocente.addEventListener('click', () => handleAccess('docente'));
+    btnEstudiante.addEventListener('click', () => handleAccess('estudiante'));
+
+    // Cerrar modal de seguridad
+    closeSecurity.addEventListener('click', () => {
+      securityModal.classList.remove('active');
+      resetSlider();
+    });
+
+    // Cerrar modal de anuncio
+    closeModal.addEventListener('click', () => {
+      anuncioModal.classList.remove('active');
+    });
+
+    anuncioModal.addEventListener('click', (e) => {
+      if (e.target === anuncioModal) {
+        anuncioModal.classList.remove('active');
+      }
+    });
+
+    // ==========================================
+    // SLIDER DE SEGURIDAD
+    // ==========================================
+    const sliderContainer = document.getElementById('sliderContainer');
+    const sliderBall = document.getElementById('sliderBall');
+    const sliderTrack = document.getElementById('sliderTrack');
+    const sliderText = document.getElementById('sliderText');
+
+    let isDragging = false;
+    let startX = 0;
+    let currentX = 0;
+    let containerWidth = 0;
+    let ballWidth = 0;
+    let maxDrag = 0;
+    let isVerified = false;
+
+    function initSlider() {
+      containerWidth = sliderContainer.offsetWidth;
+      ballWidth = sliderBall.offsetWidth;
+      maxDrag = containerWidth - ballWidth - 8;
+    }
+
+    function resetSlider() {
+      isVerified = false;
+      currentX = 0;
+      sliderBall.classList.remove('verified');
+      sliderBall.innerHTML = '<i class="fas fa-fingerprint"></i>';
+      sliderBall.style.transform = 'translateX(0px)';
+      sliderBall.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      sliderTrack.style.width = '0px';
+      sliderTrack.style.transition = 'width 0.3s ease';
+      sliderText.textContent = 'Desliza para verificar →';
+      sliderText.style.opacity = '1';
+      sliderText.style.color = 'rgba(255, 255, 255, 0.5)';
+    }
+
+    function startDrag(e) {
+      if (isVerified) return;
+      isDragging = true;
+      startX = (e.type.includes('mouse')) ? e.clientX : e.touches[0].clientX;
+      sliderBall.style.transition = 'none';
+      sliderTrack.style.transition = 'none';
+    }
+
+    function drag(e) {
+      if (!isDragging || isVerified) return;
+      e.preventDefault();
+      
+      const x = (e.type.includes('mouse')) ? e.clientX : e.touches[0].clientX;
+      let diff = x - startX;
+      
+      if (diff < 0) diff = 0;
+      if (diff > maxDrag) diff = maxDrag;
+      
+      currentX = diff;
+      sliderBall.style.transform = `translateX(${currentX}px)`;
+      sliderTrack.style.width = `${currentX + ballWidth/2}px`;
+      
+      const opacity = 1 - (currentX / maxDrag);
+      sliderText.style.opacity = opacity;
+    }
+
+    function endDrag() {
+      if (!isDragging || isVerified) return;
+      isDragging = false;
+      
+      if (currentX >= maxDrag * 0.9) {
+        verifySuccess();
+      } else {
+        resetSlider();
+      }
+    }
+
+    function verifySuccess() {
+      isVerified = true;
+      sliderBall.classList.add('verified');
+      sliderBall.innerHTML = '<i class="fas fa-check"></i>';
+      sliderText.textContent = '¡Verificado! Accediendo...';
+      sliderText.style.opacity = '1';
+      sliderText.style.color = '#10b981';
+      sliderText.style.fontWeight = 'bold';
+      
+      setTimeout(() => {
+        securityModal.classList.remove('active');
+        
+        if (userType === 'docente') {
+          anuncioModal.classList.add('active');
+        } else {
+          // Redirigir a estudiantes
+          window.location.href = 'assets/estudiantes/index.html';
+        }
+        
+        resetSlider();
+      }, 800);
+    }
+
+    // Event Listeners
+    sliderBall.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', endDrag);
+
+    sliderBall.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('touchmove', drag, { passive: false });
+    document.addEventListener('touchend', endDrag);
+
+    window.addEventListener('load', initSlider);
+    window.addEventListener('resize', initSlider);
+
+    // ==========================================
+    // VIDEO DE FONDO
+    // ==========================================
+    const video = document.getElementById('video-fondo');
+    let pausaActiva = false;
+
+    video.addEventListener('ended', () => {
+      pausaActiva = true;
+      setTimeout(() => {
+        video.currentTime = 0;
+        video.play();
+        pausaActiva = false;
+      }, 180000);
+    });
+
+    setInterval(() => {
+      if (!pausaActiva && (video.paused || video.ended)) {
+        video.currentTime = 0;
+        video.play().catch(e => console.log("Playback error:", e));
+      }
+    }, 180000);
+
+    // Cargar voces
+    setTimeout(() => {
+      if (speechSynthesis.getVoices().length === 0 && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => {};
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
